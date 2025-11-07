@@ -1,0 +1,51 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: budget-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - budget-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: budget-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/budgettracker
+      - PORT=5000
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - budget-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build: ./frontend
+    container_name: budget-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api
+    depends_on:
+      - backend
+    networks:
+      - budget-network
+
+volumes:
+  mongo-data:
+
+networks:
+  budget-network:
+    driver: bridge
