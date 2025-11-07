@@ -15,13 +15,16 @@ services:
       retries: 5
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: budget-backend
     ports:
       - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/budgettracker
       - PORT=5000
+      - NODE_ENV=development
     depends_on:
       mongo:
         condition: service_healthy
@@ -32,7 +35,9 @@ services:
       - /app/node_modules
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: budget-frontend
     ports:
       - "3000:80"
